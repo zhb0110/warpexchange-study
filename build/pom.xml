@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"><!--    <parent>-->
+
+    <!--  TODO:这里就不需要继承父pom.xml了  -->
+    <!--    <parent>-->
+    <!--        <artifactId>parent</artifactId>-->
+    <!--        <groupId>com.itranswarp.exchange</groupId>-->
+    <!--        <version>1.0</version>-->
+    <!--        <relativePath>../parent/pom.xml</relativePath>-->
+    <!--    </parent>-->
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--  自己单独声明的groupid  -->
+    <groupId>com.itranswarp.exchange</groupId>
+    <artifactId>build</artifactId>
+    <!-- TODO:注意此时，增加了名字   -->
+    <name>Warp Exchange Study</name>
+    <!--  TODO:纯打包项目  -->
+    <packaging>pom</packaging>
+    <!--  单独声明的版本  -->
+    <version>1.0</version>
+
+    <!-- 按相对路径列出所有模块 -->
+    <modules>
+        <module>../common</module>
+        <module>../config</module>
+        <!--    TODO:注意parent是它的子模块，也得打包    -->
+        <module>../parent</module>
+        <module>../push</module>
+        <module>../quotation</module>
+        <module>../trading-api</module>
+        <module>../trading-engine</module>
+        <module>../trading-sequencer</module>
+        <module>../ui</module>
+    </modules>
+
+</project>

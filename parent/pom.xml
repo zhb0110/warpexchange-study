@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.itranswarp.exchange</groupId>
+    <artifactId>parent</artifactId>
+    <version>1.0</version>
+
+    <!--  仅配置包，没有java代码，不需要打成jar包-->
+    <packaging>pom</packaging>
+
+    <!--  通用配置  -->
+
+    <!--   继承自SpringBoot Starter Parent -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <!-- SpringBoot版本，注意别使用SNAPSHOT快照等乱七八糟的版本 -->
+        <!--   TODO:高版本3，此处为了配合jdk17     -->
+        <version>3.0.0</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <properties>
+        <!-- 项目版本 -->
+        <!--         <project.version>1.0</project.version> -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <!-- Java编译和运行版本 -->
+        <!--    TODO:高版本jdk17    -->
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <java.version>17</java.version>
+
+        <!-- 定义第三方组件的版本 -->
+        <pebble.version>3.2.0</pebble.version>
+        <springcloud.version>2022.0.0</springcloud.version>
+        <springdoc.version>2.0.0</springdoc.version>
+        <vertx.version>4.3.1</vertx.version>
+
+        <!-- 自定义参数，随便定义 -->
+        <!--        <project.new.name>项目新名称</project.new.name>-->
+
+    </properties>
+
+    <!-- 声明依赖，并没有实际引入，子项目需要自己再明确写了才能引入   -->
+    <!--  TODO:引入SpringCloud依赖，貌似把所有都声明了，并且固定的版本!!!   -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${springcloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- junit5 -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- create SpringBoot executable application jar -->
+                <!--      创建可执行jar          -->
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+</project>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <!-- 指定Parent -->
+    <parent>
+        <artifactId>parent</artifactId>
+        <groupId>com.itranswarp.exchange</groupId>
+        <!--   TODO:注意版本需要和parent的一样     -->
+        <version>1.0</version>
+        <relativePath>../parent/pom.xml</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- 当前模块名称 -->
+    <artifactId>ui</artifactId>
+
+    <!--   TODO:注意spring依赖的都不需要制定版本了，因为在parent中声明了固定版本     -->
+    <dependencies>
+        <!-- TODO:依赖SpringCloud Config客户端，表明该模块作为客户端会从配置服务器那里读取配置 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-config</artifactId>
+        </dependency>
+
+        <!-- 依赖SpringBoot Actuator -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- 依赖Common模块 -->
+        <dependency>
+            <groupId>com.itranswarp.exchange</groupId>
+            <artifactId>common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- 依赖第三方模块 -->
+        <dependency>
+            <groupId>io.pebbletemplates</groupId>
+            <artifactId>pebble-spring-boot-starter</artifactId>
+            <version>${pebble.version}</version>
+        </dependency>
+
+
+    </dependencies>
+
+    <build>
+        <!-- 指定输出文件名 -->
+        <finalName>${project.artifactId}</finalName>
+        <!-- 创建SpringBoot可执行jar -->
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+
+</project>
