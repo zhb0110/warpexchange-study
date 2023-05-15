@@ -17,18 +17,25 @@
 - 100% in-内存交易.
 
 ## 模块
-
+1. 搭建项目框架：
 parent：管理最基础的pom.xml，其他模块(不包括build)直接从parent继承，简化各自的pom.xml，打包方式pom；
 build：把所有模块放到一起编译，包括parent模块，打包方式pom；
 config-repo：目录，存储Spring Cloud Config服务器端的配置文件
-
 common：公共代码；
 config：配置服务器；
-push：推送服务；
-quotation：行情服务；
-trading-api：交易API服务；
-trading-engine：交易引擎；
-trading-sequencer：定序服务；
-ui：用户Web界面。
+2. trading-engine：交易引擎；
+3. trading-sequencer：定序服务；
+4. trading-api：交易API服务；
+5. quotation：行情服务；
+6. push：推送服务；
+7. ui：用户Web界面。
+
+
+
+
+
+
+
+
 
 
