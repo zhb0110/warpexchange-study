@@ -25,6 +25,7 @@ public class SequenceHandler extends AbstractDbService {
 
     /**
      * Set sequence for each message, persist into database as batch.
+     * 为每条消息设置顺序，以批处理的形式持久化到数据库中。
      * 
      * @return Sequenced messages.
      */

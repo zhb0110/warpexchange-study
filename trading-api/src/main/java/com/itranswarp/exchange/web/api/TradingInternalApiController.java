@@ -21,7 +21,7 @@ public class TradingInternalApiController extends AbstractApiController {
     SendEventService sendEventService;
 
     /**
-     * 处理一个转账请求，可重复调用，重复发送消息，根据uniqueId去重，仅定序一次。
+     * TODO:处理一个转账请求，可重复调用，重复发送消息，根据uniqueId去重，仅定序一次。
      */
     @PostMapping("/transfer")
     public Map<String, Boolean> transferIn(@RequestBody TransferRequestBean transferRequest) {
@@ -38,6 +38,7 @@ public class TradingInternalApiController extends AbstractApiController {
         message.asset = transferRequest.asset;
         message.amount = transferRequest.amount;
         message.sufficient = transferRequest.fromUserId.longValue() != UserType.DEBT.getInternalUserId();
+        // TODO:
         this.sendEventService.sendMessage(message);
         logger.info("transfer event sent: {}", message);
         return Map.of("result", Boolean.TRUE);

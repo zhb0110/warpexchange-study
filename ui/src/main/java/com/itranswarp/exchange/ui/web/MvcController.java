@@ -50,15 +50,25 @@ public class MvcController extends LoggerSupport {
 
     @PostConstruct
     public void init() {
-        // 本地开发环境下自动创建用户user0@example.com ~ user9@example.com:
+        // TODO:本地开发环境下自动创建用户user0@example.com ~ user9@example.com:
         if (isLocalDevEnv()) {
             for (int i = 0; i <= 9; i++) {
                 String email = "user" + i + "@example.com";
                 String name = "User-" + i;
                 String password = "password" + i;
-                if (userService.fetchUserProfileByEmail(email) == null) {
+
+//                if (userService.fetchUserProfileByEmail(email) == null) {
+//                    logger.info("auto create user {} for local dev env...", email);
+//                    doSignup(email, name, password);
+//                }
+                // TODO:改造代码
+                UserProfileEntity userProfileEntity = userService.fetchUserProfileByEmail(email);
+                if (userProfileEntity == null) {
                     logger.info("auto create user {} for local dev env...", email);
                     doSignup(email, name, password);
+                }else {
+                    // 有该用户，直接通知执行“转移资产”方法，然后获得了初始化的资产数据asset。--但是接收处理端有可能执行过该事件，不重复执行
+                    deposit(userProfileEntity);
                 }
             }
         }
@@ -130,14 +140,26 @@ public class MvcController extends LoggerSupport {
         UserProfileEntity profile = userService.signup(email, name, password);
         // 本地开发环境下自动给用户增加资产:
         if (isLocalDevEnv()) {
-            logger.warn("auto deposit assets for user {} in local dev env...", profile.email);
-            Random random = new Random(profile.userId);
-            deposit(profile.userId, AssetEnum.BTC, new BigDecimal(random.nextInt(5_00, 10_00)).movePointLeft(2));
-            deposit(profile.userId, AssetEnum.USD,
-                    new BigDecimal(random.nextInt(100000_00, 400000_00)).movePointLeft(2));
+//            logger.warn("auto deposit assets for user {} in local dev env...", profile.email);
+//            Random random = new Random(profile.userId);
+//            deposit(profile.userId, AssetEnum.BTC, new BigDecimal(random.nextInt(5_00, 10_00)).movePointLeft(2));
+//            deposit(profile.userId, AssetEnum.USD,
+//                    new BigDecimal(random.nextInt(100000_00, 400000_00)).movePointLeft(2));
+            // TODO:改造代码
+            deposit(profile);
         }
         logger.info("user signed up: {}", profile);
         return profile;
+    }
+
+    // TODO:增加代码
+    private void deposit(UserProfileEntity profile) {
+        // 本地开发环境下自动给用户增加资产:
+        logger.warn("auto deposit assets for user {} in local dev env...", profile.email);
+        Random random = new Random(profile.userId);
+        deposit(profile.userId, AssetEnum.BTC, new BigDecimal(random.nextInt(5_00, 10_00)).movePointLeft(2));
+        deposit(profile.userId, AssetEnum.USD,
+                new BigDecimal(random.nextInt(100000_00, 400000_00)).movePointLeft(2));
     }
 
     private boolean isLocalDevEnv() {

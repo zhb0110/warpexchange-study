@@ -12,5 +12,5 @@ spring:
     config:
       server:
         native:
-          # 设置配置文件的搜索路径: TODO:比Demo的少一个../../../
-          search-locations: file:./config-repo, file:../config-repo, file:../../config-repo
+          # 设置配置文件的搜索路径: TODO:比教程增加了一个
+          search-locations: file:./config-repo, file:../config-repo, file:../../config-repo, file:../../../config-repo

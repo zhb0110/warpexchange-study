@@ -1,7 +1,26 @@
 package com.itranswarp.exchange;
 
-import com.itranswarp.exchange.assets.Asset;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import com.itranswarp.exchange.assets.AssetService;
+import com.itranswarp.exchange.assets.Asset;
 import com.itranswarp.exchange.assets.Transfer;
 import com.itranswarp.exchange.bean.OrderBookBean;
 import com.itranswarp.exchange.clearing.ClearingService;
@@ -21,6 +40,7 @@ import com.itranswarp.exchange.message.event.OrderRequestEvent;
 import com.itranswarp.exchange.message.event.TransferEvent;
 import com.itranswarp.exchange.messaging.MessageConsumer;
 import com.itranswarp.exchange.messaging.MessageProducer;
+import com.itranswarp.exchange.messaging.Messaging;
 import com.itranswarp.exchange.messaging.Messaging.Topic;
 import com.itranswarp.exchange.messaging.MessagingFactory;
 import com.itranswarp.exchange.model.quotation.TickEntity;
@@ -33,20 +53,6 @@ import com.itranswarp.exchange.store.StoreService;
 import com.itranswarp.exchange.support.LoggerSupport;
 import com.itranswarp.exchange.util.IpUtil;
 import com.itranswarp.exchange.util.JsonUtil;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentMap;
 
 @Component
 public class TradingEngineService extends LoggerSupport {
@@ -108,8 +114,9 @@ public class TradingEngineService extends LoggerSupport {
 
     @PostConstruct
     public void init() {
+        // TODO:初始化，并赋值，比如说：资产asset
         this.shaUpdateOrderBookLua = this.redisService.loadScriptFromClassPath("/redis/update-orderbook.lua");
-        this.consumer = this.messagingFactory.createBatchMessageListener(Topic.TRADE, IpUtil.getHostId(),
+        this.consumer = this.messagingFactory.createBatchMessageListener(Messaging.Topic.TRADE, IpUtil.getHostId(),
                 this::processMessages);
         this.producer = this.messagingFactory.createMessageProducer(Topic.TICK, TickMessage.class);
         this.tickThread = new Thread(this::runTickThread, "async-tick");
@@ -441,7 +448,7 @@ public class TradingEngineService extends LoggerSupport {
     }
 
     MatchDetailEntity generateMatchDetailEntity(long sequenceId, long timestamp, MatchDetailRecord detail,
-            boolean forTaker) {
+                                                boolean forTaker) {
         MatchDetailEntity d = new MatchDetailEntity();
         d.sequenceId = sequenceId;
         d.orderId = forTaker ? detail.takerOrder().id : detail.makerOrder().id;
@@ -509,13 +516,13 @@ public class TradingEngineService extends LoggerSupport {
                     require(asset.getFrozen().signum() >= 0, "Trader has negative frozen: " + asset);
                 }
                 switch (assetId) {
-                case USD -> {
-                    totalUSD = totalUSD.add(asset.getTotal());
-                }
-                case BTC -> {
-                    totalBTC = totalBTC.add(asset.getTotal());
-                }
-                default -> require(false, "Unexpected asset id: " + assetId);
+                    case USD -> {
+                        totalUSD = totalUSD.add(asset.getTotal());
+                    }
+                    case BTC -> {
+                        totalBTC = totalBTC.add(asset.getTotal());
+                    }
+                    default -> require(false, "Unexpected asset id: " + assetId);
                 }
             }
         }
@@ -531,27 +538,27 @@ public class TradingEngineService extends LoggerSupport {
             OrderEntity order = entry.getValue();
             require(order.unfilledQuantity.signum() > 0, "Active order must have positive unfilled amount: " + order);
             switch (order.direction) {
-            case BUY -> {
-                // 订单必须在MatchEngine中:
-                require(this.matchEngine.buyBook.exist(order), "order not found in buy book: " + order);
-                // 累计冻结的USD:
-                userOrderFrozen.putIfAbsent(order.userId, new HashMap<>());
-                Map<AssetEnum, BigDecimal> frozenAssets = userOrderFrozen.get(order.userId);
-                frozenAssets.putIfAbsent(AssetEnum.USD, BigDecimal.ZERO);
-                BigDecimal frozen = frozenAssets.get(AssetEnum.USD);
-                frozenAssets.put(AssetEnum.USD, frozen.add(order.price.multiply(order.unfilledQuantity)));
-            }
-            case SELL -> {
-                // 订单必须在MatchEngine中:
-                require(this.matchEngine.sellBook.exist(order), "order not found in sell book: " + order);
-                // 累计冻结的BTC:
-                userOrderFrozen.putIfAbsent(order.userId, new HashMap<>());
-                Map<AssetEnum, BigDecimal> frozenAssets = userOrderFrozen.get(order.userId);
-                frozenAssets.putIfAbsent(AssetEnum.BTC, BigDecimal.ZERO);
-                BigDecimal frozen = frozenAssets.get(AssetEnum.BTC);
-                frozenAssets.put(AssetEnum.BTC, frozen.add(order.unfilledQuantity));
-            }
-            default -> require(false, "Unexpected order direction: " + order.direction);
+                case BUY -> {
+                    // 订单必须在MatchEngine中:
+                    require(this.matchEngine.buyBook.exist(order), "order not found in buy book: " + order);
+                    // 累计冻结的USD:
+                    userOrderFrozen.putIfAbsent(order.userId, new HashMap<>());
+                    Map<AssetEnum, BigDecimal> frozenAssets = userOrderFrozen.get(order.userId);
+                    frozenAssets.putIfAbsent(AssetEnum.USD, BigDecimal.ZERO);
+                    BigDecimal frozen = frozenAssets.get(AssetEnum.USD);
+                    frozenAssets.put(AssetEnum.USD, frozen.add(order.price.multiply(order.unfilledQuantity)));
+                }
+                case SELL -> {
+                    // 订单必须在MatchEngine中:
+                    require(this.matchEngine.sellBook.exist(order), "order not found in sell book: " + order);
+                    // 累计冻结的BTC:
+                    userOrderFrozen.putIfAbsent(order.userId, new HashMap<>());
+                    Map<AssetEnum, BigDecimal> frozenAssets = userOrderFrozen.get(order.userId);
+                    frozenAssets.putIfAbsent(AssetEnum.BTC, BigDecimal.ZERO);
+                    BigDecimal frozen = frozenAssets.get(AssetEnum.BTC);
+                    frozenAssets.put(AssetEnum.BTC, frozen.add(order.unfilledQuantity));
+                }
+                default -> require(false, "Unexpected order direction: " + order.direction);
             }
         }
         // 订单冻结的累计金额必须和Asset冻结一致:

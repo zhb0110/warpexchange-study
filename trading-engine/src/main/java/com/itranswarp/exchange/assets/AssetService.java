@@ -1,9 +1,5 @@
 package com.itranswarp.exchange.assets;
 
-import com.itranswarp.exchange.enums.AssetEnum;
-import com.itranswarp.exchange.support.LoggerSupport;
-import org.springframework.stereotype.Component;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,9 +8,16 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import org.springframework.stereotype.Component;
+
+import com.itranswarp.exchange.enums.AssetEnum;
+import com.itranswarp.exchange.support.LoggerSupport;
+
 @Component
 public class AssetService extends LoggerSupport {
 
+    //    TODO:理论上应该定期序列号保存这些数据，但是没发现，也没看到初始化的时候读取数据库或redis中的数据，比如说：资产数据-----
+    // TODO:通过tryTransfer方法赋值
     // UserId -> Map(AssetEnum -> Assets[available/frozen])
     final ConcurrentMap<Long, ConcurrentMap<AssetEnum, Asset>> userAssets = new ConcurrentHashMap<>();
 
@@ -67,52 +70,54 @@ public class AssetService extends LoggerSupport {
     }
 
     public boolean tryTransfer(Transfer type, Long fromUser, Long toUser, AssetEnum assetId, BigDecimal amount,
-            boolean checkBalance) {
+                               boolean checkBalance) {
         if (amount.signum() == 0) {
             return true;
         }
         if (amount.signum() < 0) {
             throw new IllegalArgumentException("Negative amount");
         }
+        // TODO:拿出了对象，可赋值
         Asset fromAsset = getAsset(fromUser, assetId);
         if (fromAsset == null) {
             fromAsset = initAssets(fromUser, assetId);
         }
+        // TODO:拿出了对象，可赋值
         Asset toAsset = getAsset(toUser, assetId);
         if (toAsset == null) {
             toAsset = initAssets(toUser, assetId);
         }
         return switch (type) {
-        case AVAILABLE_TO_AVAILABLE -> {
-            // 需要检查余额且余额不足:
-            if (checkBalance && fromAsset.available.compareTo(amount) < 0) {
-                yield false;
+            case AVAILABLE_TO_AVAILABLE -> {
+                // 需要检查余额且余额不足:
+                if (checkBalance && fromAsset.available.compareTo(amount) < 0) {
+                    yield false;
+                }
+                fromAsset.available = fromAsset.available.subtract(amount);
+                toAsset.available = toAsset.available.add(amount);
+                yield true;
             }
-            fromAsset.available = fromAsset.available.subtract(amount);
-            toAsset.available = toAsset.available.add(amount);
-            yield true;
-        }
-        case AVAILABLE_TO_FROZEN -> {
-            // 需要检查余额且余额不足:
-            if (checkBalance && fromAsset.available.compareTo(amount) < 0) {
-                yield false;
+            case AVAILABLE_TO_FROZEN -> {
+                // 需要检查余额且余额不足:
+                if (checkBalance && fromAsset.available.compareTo(amount) < 0) {
+                    yield false;
+                }
+                fromAsset.available = fromAsset.available.subtract(amount);
+                toAsset.frozen = toAsset.frozen.add(amount);
+                yield true;
             }
-            fromAsset.available = fromAsset.available.subtract(amount);
-            toAsset.frozen = toAsset.frozen.add(amount);
-            yield true;
-        }
-        case FROZEN_TO_AVAILABLE -> {
-            // 需要检查余额且余额不足:
-            if (checkBalance && fromAsset.frozen.compareTo(amount) < 0) {
-                yield false;
+            case FROZEN_TO_AVAILABLE -> {
+                // 需要检查余额且余额不足:
+                if (checkBalance && fromAsset.frozen.compareTo(amount) < 0) {
+                    yield false;
+                }
+                fromAsset.frozen = fromAsset.frozen.subtract(amount);
+                toAsset.available = toAsset.available.add(amount);
+                yield true;
             }
-            fromAsset.frozen = fromAsset.frozen.subtract(amount);
-            toAsset.available = toAsset.available.add(amount);
-            yield true;
-        }
-        default -> {
-            throw new IllegalArgumentException("invalid type: " + type);
-        }
+            default -> {
+                throw new IllegalArgumentException("invalid type: " + type);
+            }
         };
     }
 

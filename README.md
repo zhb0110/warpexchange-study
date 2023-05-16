@@ -39,9 +39,10 @@
 
 链接：https://www.yuque.com/zhuhongbo-x17of/yzx0z9/ov8p4k5iubwtbrs9
 
-## 问题
-
-本项目没有真正运行起来，使用源项目启动运行成功，具体原因，有时间处理
+## 问题：第二次启动，拿不到资产数据
+查了下，资产数据都是空的，AssetService类中
+比较好的方法：重新注册一个用户，所有用户都获得了资产数据，这个比较靠谱，因为在TradingEngineService类中执行了“用户数量”次数的processMessages方法。
+其他改造方法一般：比如在MvcController中改造，虽然用户数据都是在这里初始化，但是一些逻辑需要通盘考虑，直接再次给用户赋值资产，会被事件处理器去重。
 
 
 
